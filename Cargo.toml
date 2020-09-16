@@ -3,7 +3,14 @@ name = "screen_layer"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
+license = "MPL-2.0"
+description = "A library which provides layer structure for writing OS."
+repository = "https://github.com/toku-sa-n/screen_layer"
+categories = ["no-std", "os", "gui"]
+keywords = ["no_std", "os", "gui"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rgb = "0.8.25"
+vek = "0.12.0"
