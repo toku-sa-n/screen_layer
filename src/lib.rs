@@ -20,16 +20,18 @@
 //! let layer = Layer::new(Vec2::new(0, 0), Vec2::new(5, 5));
 //! let id = controller.add_layer(layer);
 //!
-//! controller.edit_layer(id, |layer: &mut Layer| {
-//!     for i in 0..5 {
-//!         layer[i][i] = Some(RGB8::new(0, 255, 0));
-//!     }
-//! }).unwrap();
+//! controller
+//!     .edit_layer(id, |layer: &mut Layer| {
+//!         for i in 0..5 {
+//!             layer[i][i] = Some(RGB8::new(0, 255, 0));
+//!         }
+//!     })
+//!     .unwrap();
 //!
-//! for i in 0..5{
-//!     assert_eq!(pseudo_vram[i*i*4],0);
-//!     assert_eq!(pseudo_vram[i*i*4+1],255);
-//!     assert_eq!(pseudo_vram[i*i*4+2],0);
+//! for i in 0..5 {
+//!     assert_eq!(pseudo_vram[4 * (i * 10 + i)], 0);
+//!     assert_eq!(pseudo_vram[4 * (i * 10 + i) + 1], 255);
+//!     assert_eq!(pseudo_vram[4 * (i * 10 + i) + 2], 0);
 //! }
 //! ```
 
