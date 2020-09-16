@@ -95,9 +95,14 @@ impl Controller {
     /// Add a layer.
     ///
     /// This method returns an ID of the layer. You must save the id to edit the one.
+    ///
+    /// After adding a layer, layers will be redrawn.
     pub fn add_layer(&mut self, layer: Layer) -> Id {
         let id = layer.id;
+        let top_left = layer.top_left;
+        let len = layer.len;
         self.collection.push(layer);
+        self.redraw(top_left, len);
         id
     }
 
