@@ -226,11 +226,11 @@ impl IndexMut<usize> for Layer {
     }
 }
 
-/// An almost unique id to distinguish each layers.
+/// An almost unique id to distinguish each layer.
 ///
 /// You have to save this id to edit, and slide a layer.
 ///
-/// The id may conflict if you create lots of layers. Strictly speaking, creating `usize::MAX` layers
+/// The id may conflict if you create lots of layers. Strictly speaking, creating more than `usize::MAX` layers
 /// will create layers having the same ID.
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Hash, Debug, Default)]
 pub struct Id(usize);
