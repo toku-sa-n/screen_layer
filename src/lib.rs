@@ -96,6 +96,8 @@ impl Controller {
     ///
     /// This method returns an ID of the layer. You must save the id to edit the one.
     ///
+    /// Added layer comes to the front. All layers behind the one will be hidden.
+    ///
     /// After adding a layer, layers will be redrawn.
     pub fn add_layer(&mut self, layer: Layer) -> Id {
         let id = layer.id;
