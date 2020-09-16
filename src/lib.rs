@@ -195,7 +195,7 @@ impl Layer {
     /// Creates an instance of this struct.
     ///
     /// `top_left`, `len`, and `top_left + len`  can be negative, or larger than the resolution of
-    /// the screen. In such cases, parts that does not fit will not be drawn.
+    /// the screen. In such cases, parts that does not fit in the screen will not be drawn.
     pub fn new(top_left: Vec2<isize>, len: Vec2<usize>) -> Self {
         Self {
             buf: vec![vec![None; len.x]; len.y],
