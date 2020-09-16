@@ -128,7 +128,8 @@ impl Controller {
 
     /// Slide a layer.
     ///
-    /// The value of `new_top_left`
+    /// The value of `new_top_left` can be negative, or larger than screen resolution. In such
+    /// cases, any part of the layer that extends outside the screen will not be drawn.
     ///
     /// After sliding, layers will be redrawn.
     pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<isize>) -> Result<(), Error> {
