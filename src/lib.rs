@@ -182,41 +182,6 @@ impl Controller {
     }
 }
 
-#[derive(Debug, Default)]
-struct Vram {
-    resolution: Vec2<usize>,
-    bpp: usize,
-    base_addr: usize,
-}
-
-impl Vram {
-    fn new(resolution: Vec2<usize>, bpp: usize, base_addr: usize) -> Self {
-        Self {
-            resolution,
-            bpp,
-            base_addr,
-        }
-    }
-
-    fn set_color(&self, coord: Vec2<usize>, rgb: RGB8) {
-        assert_eq!(
-            Vec2::<usize>::max(Vec2::<usize>::min(coord, self.resolution), Vec2::zero()),
-            coord
-        );
-
-        let offset_from_base = ((coord.y * self.resolution.x + coord.x) * self.bpp / 8) as isize;
-        let ptr = (self.base_addr as isize + offset_from_base) as usize;
-
-        // Using `offset` causes UB. See the official doc of `offset` method.
-        // TODO: Support for other orders of RGB.
-        unsafe {
-            ptr::write(ptr as _, rgb.b);
-            ptr::write((ptr + size_of::<u8>()) as _, rgb.g);
-            ptr::write((ptr + size_of::<u8>() * 2) as _, rgb.r);
-        }
-    }
-}
-
 /// Represents a layer.
 #[derive(PartialEq, Eq, Hash, Debug, Default)]
 pub struct Layer {
@@ -281,4 +246,39 @@ impl Id {
 pub enum Error {
     /// No layer has the provided ID.
     NoSuchLayer(Id),
+}
+
+#[derive(Debug, Default)]
+struct Vram {
+    resolution: Vec2<usize>,
+    bpp: usize,
+    base_addr: usize,
+}
+
+impl Vram {
+    fn new(resolution: Vec2<usize>, bpp: usize, base_addr: usize) -> Self {
+        Self {
+            resolution,
+            bpp,
+            base_addr,
+        }
+    }
+
+    fn set_color(&self, coord: Vec2<usize>, rgb: RGB8) {
+        assert_eq!(
+            Vec2::<usize>::max(Vec2::<usize>::min(coord, self.resolution), Vec2::zero()),
+            coord
+        );
+
+        let offset_from_base = ((coord.y * self.resolution.x + coord.x) * self.bpp / 8) as isize;
+        let ptr = (self.base_addr as isize + offset_from_base) as usize;
+
+        // Using `offset` causes UB. See the official doc of `offset` method.
+        // TODO: Support for other orders of RGB.
+        unsafe {
+            ptr::write(ptr as _, rgb.b);
+            ptr::write((ptr + size_of::<u8>()) as _, rgb.g);
+            ptr::write((ptr + size_of::<u8>() * 2) as _, rgb.r);
+        }
+    }
 }
