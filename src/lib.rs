@@ -65,8 +65,6 @@ pub use rgb::RGB8;
 pub use vek::Vec2;
 
 /// A controller of layers.
-///
-/// This struct contains a vector of layers.
 #[derive(Debug, Default)]
 pub struct Controller {
     vram: Vram,
@@ -79,13 +77,17 @@ impl Controller {
     /// # Safety
     ///
     /// This function is unsafe because this library may break memory safety by trying to access an
-    /// invalid memory if `base_addr` is an invalid address.
+    /// invalid memory if `base_addr_of_vram` is an invalid address.
     ///
-    /// Also `resolution` must be correct. If it has larger value than the actual, this library may
-    /// access to the memory outside VRAM.
-    pub unsafe fn new(resolution: Vec2<usize>, bits_per_pixel: usize, base_addr: usize) -> Self {
+    /// Also this library may access to the memory outside of VRAM if `resolution` contains larger
+    /// value than the actual one.
+    pub unsafe fn new(
+        resolution: Vec2<usize>,
+        bits_per_pixel: usize,
+        base_addr_of_vram: usize,
+    ) -> Self {
         Self {
-            vram: Vram::new(resolution, bits_per_pixel, base_addr),
+            vram: Vram::new(resolution, bits_per_pixel, base_addr_of_vram),
             collection: Vec::new(),
         }
     }
