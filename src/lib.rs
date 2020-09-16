@@ -36,9 +36,9 @@
 //!     .unwrap();
 //!
 //! for i in 0..LAYER_WIDTH {
-//!     assert_eq!(pseudo_vram[4 * (i * 10 + i)], 0);
-//!     assert_eq!(pseudo_vram[4 * (i * 10 + i) + 1], 255);
-//!     assert_eq!(pseudo_vram[4 * (i * 10 + i) + 2], 0);
+//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i)], 0);
+//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 1], 255);
+//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 2], 0);
 //! }
 //! ```
 
