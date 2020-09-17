@@ -77,7 +77,7 @@ impl Controller {
     /// # Safety
     ///
     /// This function is unsafe because this library may break memory safety by trying to access an
-    /// invalid memory if `base_addr_of_vram` is an invalid address.
+    /// invalid memory if `base_addr_of_vram` is not a correct address.
     ///
     /// Also this library may access to the memory outside of VRAM if `resolution` contains larger
     /// value than the actual one.
