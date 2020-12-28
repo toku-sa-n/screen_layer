@@ -15,6 +15,7 @@ use screen_layer::{self, Layer, Vec2, RGB8};
 const SCREEN_WIDTH: usize = 10;
 const SCREEN_HEIGHT: usize = 10;
 const BPP: usize = 32;
+
 let mut pseudo_vram = [0u8; SCREEN_WIDTH * SCREEN_HEIGHT * BPP / 8];
 let ptr = pseudo_vram.as_ptr() as usize;
 let mut controller =
@@ -38,6 +39,11 @@ for i in 0..LAYER_WIDTH {
     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 1], 255);
     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 2], 0);
 }
+
+controller.set_pixel(id, Vec2::one(), Some(RGB8::new(255, 0, 0)));
+assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1)], 0);
+assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 1], 0);
+assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 2], 255);
 ```
 
 License: MPL-2.0
