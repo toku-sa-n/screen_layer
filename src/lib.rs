@@ -240,7 +240,7 @@ impl Layer {
 /// Layer can index into each pixels.
 impl Index<usize> for Layer {
     /// `None` represents the pixel is transparent.
-    type Output = Vec<Option<RGB8>>;
+    type Output = [Option<RGB8>];
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.buf[index]
