@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.2.0 - 2020-12-28
+
+- `Layer::Index` and `Layer::IndexMut` not return a reference to slice, not vector.
+
 ## 0.1.2 - 2020-12-28
 
 - Fix that the pixel is not redrawn correctly.
