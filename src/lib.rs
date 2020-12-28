@@ -40,6 +40,11 @@
 //!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 1], 255);
 //!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 2], 0);
 //! }
+//!
+//! controller.set_pixel(id, Vec2::zero(), Some(RGB8::new(255, 0, 0)));
+//! assert_eq!(pseudo_vram[0], 0);
+//! assert_eq!(pseudo_vram[1], 0);
+//! assert_eq!(pseudo_vram[2], 255);
 //! ```
 
 #![no_std]
@@ -51,6 +56,7 @@ extern crate alloc;
 use {
     alloc::vec::Vec,
     core::{
+        convert::TryFrom,
         mem::size_of,
         ops::{Index, IndexMut},
         ptr,
@@ -113,7 +119,8 @@ impl Controller {
     /// You can edit a layer by indexing `Layer` type. For more information, see the description of
     /// `Index` implementation of `Layer` type.
     ///
-    /// After editing, layers will be redrawn.
+    /// After editing, layers will be redrawn. This may take time if the layer is large. In such
+    /// cases, use [`set_pixel`] instead.
     pub fn edit_layer<T>(&mut self, id: Id, f: T) -> Result<(), Error>
     where
         T: Fn(&mut Layer),
@@ -123,6 +130,25 @@ impl Controller {
         let layer_len = layer.len;
         f(layer);
         self.redraw(layer_top_left, layer_len);
+        Ok(())
+    }
+
+    /// Set a color on pixel.
+    ///
+    /// `coord` is the coordinate of the relative position from the top-left of the layer. If `color` is `None`, the pixel is transparent.
+    ///
+    /// After editing, only the edited pixel will be redrawn.
+    pub fn set_pixel(
+        &mut self,
+        id: Id,
+        coord: Vec2<isize>,
+        color: Option<RGB8>,
+    ) -> Result<(), Error> {
+        let layer = self.id_to_layer(id)?;
+        let layer_top_left = layer.top_left;
+        layer[usize::try_from(coord.y).unwrap()][usize::try_from(coord.x).unwrap()] = color;
+
+        self.redraw(layer_top_left, Vec2::one());
         Ok(())
     }
 
