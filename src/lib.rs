@@ -17,6 +17,7 @@
 //! const SCREEN_WIDTH: usize = 10;
 //! const SCREEN_HEIGHT: usize = 10;
 //! const BPP: usize = 32;
+//!
 //! let mut pseudo_vram = [0u8; SCREEN_WIDTH * SCREEN_HEIGHT * BPP / 8];
 //! let ptr = pseudo_vram.as_ptr() as usize;
 //! let mut controller =
@@ -41,10 +42,10 @@
 //!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 2], 0);
 //! }
 //!
-//! controller.set_pixel(id, Vec2::zero(), Some(RGB8::new(255, 0, 0)));
-//! assert_eq!(pseudo_vram[0], 0);
-//! assert_eq!(pseudo_vram[1], 0);
-//! assert_eq!(pseudo_vram[2], 255);
+//! controller.set_pixel(id, Vec2::one(), Some(RGB8::new(255, 0, 0)));
+//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1)], 0);
+//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 1], 0);
+//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 2], 255);
 //! ```
 
 #![no_std]
@@ -148,7 +149,7 @@ impl Controller {
         let layer_top_left = layer.top_left;
         layer[usize::try_from(coord.y).unwrap()][usize::try_from(coord.x).unwrap()] = color;
 
-        self.redraw(layer_top_left, Vec2::one());
+        self.redraw(layer_top_left + coord, Vec2::one());
         Ok(())
     }
 
