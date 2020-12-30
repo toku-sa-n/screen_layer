@@ -14,38 +14,38 @@
 //! ```rust
 //! use screen_layer::{self, Layer, Vec2, RGB8};
 //!
-//! const SCREEN_WIDTH: usize = 10;
-//! const SCREEN_HEIGHT: usize = 10;
-//! const BPP: usize = 32;
+//! const SCREEN_WIDTH: u32 = 10;
+//! const SCREEN_HEIGHT: u32 = 10;
+//! const BPP: u32 = 32;
 //!
-//! let mut pseudo_vram = [0u8; SCREEN_WIDTH * SCREEN_HEIGHT * BPP / 8];
+//! let mut pseudo_vram = [0u8; (SCREEN_WIDTH * SCREEN_HEIGHT * BPP / 8) as usize];
 //! let ptr = pseudo_vram.as_ptr() as usize;
 //! let mut controller =
 //!     unsafe { screen_layer::Controller::new(Vec2::new(SCREEN_WIDTH, SCREEN_HEIGHT), BPP, ptr) };
 //!
-//! const LAYER_WIDTH: usize = 5;
-//! const LAYER_HEIGHT: usize = 5;
+//! const LAYER_WIDTH: u32 = 5;
+//! const LAYER_HEIGHT: u32 = 5;
 //! let layer = Layer::new(Vec2::new(0, 0), Vec2::new(LAYER_WIDTH, LAYER_HEIGHT));
 //! let id = controller.add_layer(layer);
 //!
 //! controller
 //!     .edit_layer(id, |layer: &mut Layer| {
 //!         for i in 0..LAYER_WIDTH {
-//!             layer[i][i] = Some(RGB8::new(0, 255, 0));
+//!             layer[i as usize][i as usize] = Some(RGB8::new(0, 255, 0));
 //!         }
 //!     })
 //!     .unwrap();
 //!
 //! for i in 0..LAYER_WIDTH {
-//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i)], 0);
-//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 1], 255);
-//!     assert_eq!(pseudo_vram[BPP / 8 * (i * SCREEN_WIDTH + i) + 2], 0);
+//!     assert_eq!(pseudo_vram[(BPP / 8 * (i * SCREEN_WIDTH + i)) as usize], 0);
+//!     assert_eq!(pseudo_vram[(BPP / 8 * (i * SCREEN_WIDTH + i) + 1) as usize], 255);
+//!     assert_eq!(pseudo_vram[(BPP / 8 * (i * SCREEN_WIDTH + i) + 2) as usize], 0);
 //! }
 //!
 //! controller.set_pixel(id, Vec2::one(), Some(RGB8::new(255, 0, 0)));
-//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1)], 0);
-//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 1], 0);
-//! assert_eq!(pseudo_vram[BPP / 8 * (1 * SCREEN_WIDTH + 1) + 2], 255);
+//! assert_eq!(pseudo_vram[(BPP / 8 * (1 * SCREEN_WIDTH + 1)) as usize], 0);
+//! assert_eq!(pseudo_vram[(BPP / 8 * (1 * SCREEN_WIDTH + 1) + 1) as usize], 0);
+//! assert_eq!(pseudo_vram[(BPP / 8 * (1 * SCREEN_WIDTH + 1) + 2) as usize], 255);
 //! ```
 
 #![no_std]
@@ -57,11 +57,11 @@ extern crate alloc;
 use {
     alloc::vec::Vec,
     core::{
-        convert::TryFrom,
+        convert::{TryFrom, TryInto},
         mem::size_of,
         ops::{Index, IndexMut},
         ptr,
-        sync::atomic::{AtomicUsize, Ordering::Relaxed},
+        sync::atomic::{AtomicU64, Ordering::Relaxed},
     },
 };
 
@@ -89,8 +89,8 @@ impl Controller {
     /// Also this library may access to the memory outside of VRAM if `resolution` contains larger
     /// value than the actual one.
     pub unsafe fn new(
-        resolution: Vec2<usize>,
-        bits_per_pixel: usize,
+        resolution: Vec2<u32>,
+        bits_per_pixel: u32,
         base_addr_of_vram: usize,
     ) -> Self {
         Self {
@@ -142,14 +142,14 @@ impl Controller {
     pub fn set_pixel(
         &mut self,
         id: Id,
-        coord: Vec2<isize>,
+        coord: Vec2<u32>,
         color: Option<RGB8>,
     ) -> Result<(), Error> {
         let layer = self.id_to_layer(id)?;
         let layer_top_left = layer.top_left;
         layer[usize::try_from(coord.y).unwrap()][usize::try_from(coord.x).unwrap()] = color;
 
-        self.redraw(layer_top_left + coord, Vec2::one());
+        self.redraw(layer_top_left + coord.as_(), Vec2::one());
         Ok(())
     }
 
@@ -159,7 +159,7 @@ impl Controller {
     /// cases, any part of the layer that extends outside the screen will not be drawn.
     ///
     /// After sliding, layers will be redrawn.
-    pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<isize>) -> Result<(), Error> {
+    pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
         let layer = self.id_to_layer(id)?;
         let old_top_left = layer.top_left;
         let layer_len = layer.len;
@@ -169,14 +169,14 @@ impl Controller {
         Ok(())
     }
 
-    fn redraw(&self, mut vram_top_left: Vec2<isize>, len: Vec2<usize>) {
-        vram_top_left = Vec2::<isize>::max(
+    fn redraw(&self, mut vram_top_left: Vec2<i32>, len: Vec2<u32>) {
+        vram_top_left = Vec2::<i32>::max(
             Vec2::min(vram_top_left, self.vram.resolution.as_()),
             Vec2::zero(),
         );
 
         let vram_bottom_right = vram_top_left + len.as_();
-        let vram_bottom_right = Vec2::<isize>::max(
+        let vram_bottom_right = Vec2::<i32>::max(
             Vec2::min(vram_bottom_right, self.vram.resolution.as_()),
             Vec2::zero(),
         );
@@ -185,9 +185,9 @@ impl Controller {
             let layer_bottom_right = layer.top_left + layer.len.as_();
 
             let top_left =
-                Vec2::<isize>::min(Vec2::max(vram_top_left, layer.top_left), layer_bottom_right);
+                Vec2::<i32>::min(Vec2::max(vram_top_left, layer.top_left), layer_bottom_right);
             let bottom_right =
-                Vec2::<isize>::max(top_left, Vec2::min(vram_bottom_right, layer_bottom_right));
+                Vec2::<i32>::max(top_left, Vec2::min(vram_bottom_right, layer_bottom_right));
 
             for y in top_left.y..bottom_right.y {
                 for x in top_left.x..bottom_right.x {
@@ -213,8 +213,8 @@ impl Controller {
 #[derive(PartialEq, Eq, Hash, Debug, Default)]
 pub struct Layer {
     buf: Vec<Vec<Option<RGB8>>>,
-    top_left: Vec2<isize>,
-    len: Vec2<usize>,
+    top_left: Vec2<i32>,
+    len: Vec2<u32>,
     id: Id,
 }
 
@@ -223,16 +223,16 @@ impl Layer {
     ///
     /// `top_left`, `len`, and `top_left + len`  can be negative, or larger than the resolution of
     /// the screen. In such cases, parts that does not fit in the screen will not be drawn.
-    pub fn new(top_left: Vec2<isize>, len: Vec2<usize>) -> Self {
+    pub fn new(top_left: Vec2<i32>, len: Vec2<u32>) -> Self {
         Self {
-            buf: vec![vec![None; len.x]; len.y],
+            buf: vec![vec![None; len.x.try_into().unwrap()]; len.y.try_into().unwrap()],
             top_left,
             len,
             id: Id::new(),
         }
     }
 
-    fn slide(&mut self, new_top_left: Vec2<isize>) {
+    fn slide(&mut self, new_top_left: Vec2<i32>) {
         self.top_left = new_top_left;
     }
 }
@@ -257,13 +257,13 @@ impl IndexMut<usize> for Layer {
 ///
 /// You have to save this id to edit, and slide a layer.
 ///
-/// The id may conflict if you create lots of layers. Strictly speaking, creating more than `usize::MAX` layers
+/// The id may conflict if you create lots of layers. Strictly speaking, creating more than `u64::MAX` layers
 /// will create layers having the same ID.
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Hash, Debug, Default)]
-pub struct Id(usize);
+pub struct Id(u64);
 impl Id {
     fn new() -> Self {
-        static ID: AtomicUsize = AtomicUsize::new(0);
+        static ID: AtomicU64 = AtomicU64::new(0);
         Self(ID.fetch_add(1, Relaxed))
     }
 }
@@ -277,13 +277,13 @@ pub enum Error {
 
 #[derive(Debug, Default)]
 struct Vram {
-    resolution: Vec2<usize>,
-    bpp: usize,
+    resolution: Vec2<u32>,
+    bpp: u32,
     base_addr: usize,
 }
 
 impl Vram {
-    fn new(resolution: Vec2<usize>, bpp: usize, base_addr: usize) -> Self {
+    fn new(resolution: Vec2<u32>, bpp: u32, base_addr: usize) -> Self {
         Self {
             resolution,
             bpp,
@@ -291,9 +291,9 @@ impl Vram {
         }
     }
 
-    fn set_color(&self, coord: Vec2<usize>, rgb: RGB8) {
+    fn set_color(&self, coord: Vec2<u32>, rgb: RGB8) {
         assert_eq!(
-            Vec2::<usize>::max(Vec2::<usize>::min(coord, self.resolution), Vec2::zero()),
+            Vec2::<u32>::max(Vec2::<u32>::min(coord, self.resolution), Vec2::zero()),
             coord
         );
 

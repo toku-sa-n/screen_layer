@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.3.0 - 2020-12-30
+
+- Types of many parameters are changed.
+
 ## 0.2.0 - 2020-12-28
 
 - `Layer::Index` and `Layer::IndexMut` not return a reference to slice, not vector.
