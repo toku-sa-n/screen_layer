@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.3.1 - 2021-01-02
+
+- Update the version of `vec` to 0.13.0
+
 ## 0.3.0 - 2020-12-30
 
 - Types of many parameters are changed.
